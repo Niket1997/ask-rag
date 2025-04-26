@@ -2,7 +2,7 @@
 ALLOWED_FILE_TYPES = {
     "application/pdf": ".pdf",
     "application/json": ".json",
-    "text/csv": ".csv"
+    "text/csv": ".csv",
 }
 
 # Maximum file size (10MB)
@@ -20,4 +20,4 @@ API_VERSION = "1.0.0"
 
 # File Processing Configuration
 TEMP_FILE_PREFIX = "ask_rag_"
-TEMP_FILE_SUFFIX = "_temp" 
+TEMP_FILE_SUFFIX = "_temp"

@@ -5,8 +5,8 @@
 # 3. /authenticate # optional
 
 from fastapi import FastAPI
-from app.api.endpoints import router
 
+from app.api.endpoints import router
 
 app = FastAPI()
 
