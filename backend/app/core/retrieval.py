@@ -6,12 +6,12 @@
 # 3. generate a system prompt using the retrieved vector embeddings
 # 4. query the LLM to answer user's question
 
+from app.core.constants import embeddings, info_logger, llm, qdrant_client
 from langchain_qdrant import QdrantVectorStore
-
-from app.core.constants import embeddings, llm, qdrant_client, info_logger
 
 # Similarity threshold for considering a document relevant
 SIMILARITY_THRESHOLD = 0.40
+
 
 # Retrieve the answer from LLM based on the query
 # and the documents retrieved from Qdrant
@@ -40,7 +40,9 @@ def retrieve_answer(query: str, user_email: str) -> str:
             )
 
             # Get documents with their similarity scores
-            relevant_docs = vector_store.similarity_search_with_score(query, k=5, score_threshold=SIMILARITY_THRESHOLD)
+            relevant_docs = vector_store.similarity_search_with_score(
+                query, k=5, score_threshold=SIMILARITY_THRESHOLD
+            )
 
             if relevant_docs:
                 info_logger.info(f"retrieved {len(relevant_docs)} relevant documents")

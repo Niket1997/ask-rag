@@ -1,9 +1,8 @@
 import os
 from typing import Optional
 
-from fastapi import UploadFile
-
 from app.core.config import ALLOWED_FILE_TYPES, CHUNK_SIZE, MAX_FILE_SIZE
+from fastapi import UploadFile
 
 
 class FileValidationError(Exception):

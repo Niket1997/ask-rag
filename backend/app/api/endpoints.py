@@ -1,17 +1,19 @@
 import os
-import tempfile
 import re
+import tempfile
 
-from fastapi import APIRouter, Header, HTTPException, Request, UploadFile, Form
-from pydantic import BaseModel, Field, EmailStr
-
-from app.core.config import (ALLOWED_FILE_TYPES, TEMP_FILE_PREFIX,
-                             TEMP_FILE_SUFFIX)
+from app.core.auth import verify_api_key
+from app.core.config import ALLOWED_FILE_TYPES, TEMP_FILE_PREFIX, TEMP_FILE_SUFFIX
 from app.core.constants import error_logger, info_logger
 from app.core.ingestion import ingest_pdf
 from app.core.retrieval import retrieve_answer
-from app.core.validation import (FileValidationError, validate_file_content,
-                                 validate_file_headers)
+from app.core.validation import (
+    FileValidationError,
+    validate_file_content,
+    validate_file_headers,
+)
+from fastapi import APIRouter, Depends, Form, Header, HTTPException, Request, UploadFile
+from pydantic import BaseModel, EmailStr, Field
 
 router = APIRouter()
 
@@ -20,6 +22,7 @@ router = APIRouter()
 class QueryRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=500)
     user_email: EmailStr = Field(..., description="Valid email address")
+
 
 # Read root
 @router.get("/")
@@ -30,9 +33,10 @@ def read_root():
 # Ingest the file into the database
 @router.post("/ingest")
 async def ingest_file(
-    file: UploadFile, 
+    file: UploadFile,
     content_length: int = Header(None),
-    user_email: EmailStr = Form(..., description="Valid email address")
+    user_email: EmailStr = Form(..., description="Valid email address"),
+    api_key: str = Depends(verify_api_key),
 ):
     temp_file_path = None
 
@@ -91,7 +95,7 @@ async def ingest_file(
 
 # Retrieve the answer from LLM based on the query
 @router.post("/ask")
-async def ask_question(request: QueryRequest):
+async def ask_question(request: QueryRequest, api_key: str = Depends(verify_api_key)):
     try:
         # Log the query
         info_logger.info(f"Processing query: {request.query}")

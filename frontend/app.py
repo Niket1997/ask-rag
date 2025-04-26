@@ -1,22 +1,20 @@
-import streamlit as st
-import requests
 import os
+
+import requests
+import streamlit as st
 from dotenv import load_dotenv
-from streamlit_google_auth import Authenticate
 from google_credential_file_generator import get_google_credentials
+from streamlit_google_auth import Authenticate
 
 # Load environment variables
 load_dotenv()
 
 # Configure the app
-st.set_page_config(
-    page_title="RAG Chat Assistant",
-    page_icon="🤖",
-    layout="wide"
-)
+st.set_page_config(page_title="RAG Chat Assistant", page_icon="🤖", layout="wide")
 
 # Custom CSS for buttons and login page
-st.markdown("""
+st.markdown(
+    """
     <style>
     /* Regular button styles */
     button[kind="primary"] {
@@ -119,19 +117,21 @@ st.markdown("""
         line-height: 1.4;
     }
     </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # Constants for file upload
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 ALLOWED_EXTENSIONS = {
-    'pdf': 'PDF Document',
+    "pdf": "PDF Document",
 }
 
 authenticator = Authenticate(
     secret_credentials_path=get_google_credentials(),
-    cookie_name='my_cookie_name',
-    cookie_key='this_is_secret',
-    redirect_uri='http://localhost:8501',
+    cookie_name="my_cookie_name",
+    cookie_key="this_is_secret",
+    redirect_uri="http://localhost:8501",
 )
 
 # Check if the user is already authenticated
@@ -144,12 +144,19 @@ if "messages" not in st.session_state:
 # Backend API URL
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
+
+# Get authentication headers
+def get_auth_headers():
+    return {"X-API-KEY": os.getenv("BACKEND_API_KEY")}
+
+
 def query_backend(message, user_email):
     """Send a query to the backend and get the response."""
     try:
         response = requests.post(
             f"{BACKEND_URL}/ask",
-            json={"query": message, "user_email": user_email}
+            json={"query": message, "user_email": user_email},
+            headers=get_auth_headers(),
         )
         response.raise_for_status()
         return response.json()["answer"]
@@ -157,38 +164,46 @@ def query_backend(message, user_email):
         st.error(f"Error communicating with backend: {str(e)}")
         return None
 
+
 def upload_file(file, user_email):
     """Upload a file to the backend."""
     try:
-        files = {'file': (file.name, file.getvalue(), file.type)}
-        data = {'user_email': user_email}
+        files = {"file": (file.name, file.getvalue(), file.type)}
+        data = {"user_email": user_email}
         response = requests.post(
-            f"{BACKEND_URL}/ingest",
-            files=files,
-            data=data
+            f"{BACKEND_URL}/ingest", files=files, data=data, headers=get_auth_headers()
         )
         response.raise_for_status()
         return True, "File ingested successfully!"
     except requests.exceptions.RequestException as e:
         return False, f"Error ingesting file: {str(e)}"
 
+
 def validate_file(file):
     """Validate the uploaded file."""
     if file.size > MAX_FILE_SIZE:
-        return False, f"File size exceeds the maximum limit of {MAX_FILE_SIZE/1024/1024}MB"
-    
-    file_extension = file.name.split('.')[-1].lower()
+        return (
+            False,
+            f"File size exceeds the maximum limit of {MAX_FILE_SIZE/1024/1024}MB",
+        )
+
+    file_extension = file.name.split(".")[-1].lower()
     if file_extension not in ALLOWED_EXTENSIONS:
-        return False, f"File type not supported. Allowed types: {', '.join(ALLOWED_EXTENSIONS.keys())}"
-    
+        return (
+            False,
+            f"File type not supported. Allowed types: {', '.join(ALLOWED_EXTENSIONS.keys())}",
+        )
+
     return True, "File is valid"
+
 
 # App title
 st.title("🤖 RAG Chat Assistant")
 
 # Login page
-if not st.session_state.get('connected', False):
-    st.markdown("""
+if not st.session_state.get("connected", False):
+    st.markdown(
+        """
         <div class="login-container">
             <h1 class="login-title">Welcome to RAG Chat Assistant</h1>
             <p class="login-description">
@@ -213,12 +228,19 @@ if not st.session_state.get('connected', False):
                 </div>
             </div>
         </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns([3,2,3])
+    """,
+        unsafe_allow_html=True,
+    )
+
+    col1, col2, col3 = st.columns([3, 2, 3])
     authorization_url = authenticator.get_authorization_url()
     with col2:
-        st.link_button('Login with Google', authorization_url, use_container_width=True, type="primary")
+        st.link_button(
+            "Login with Google",
+            authorization_url,
+            use_container_width=True,
+            type="primary",
+        )
 else:
     # Create two columns for the Clear Chat button
     col1, col2 = st.columns([7, 1])
@@ -226,15 +248,17 @@ else:
         if st.button("Clear Chat", use_container_width=True, type="secondary"):
             st.session_state.messages = []
             st.rerun()
-    
+
     # Description
-    st.markdown("""
+    st.markdown(
+        """
     This chat interface allows you to interact with documents that have been ingested into the system.
     Ask questions about the content, and the AI will provide relevant answers based on the stored knowledge.
-    """)
+    """
+    )
 
     # Get user email
-    user_email = st.session_state['user_info'].get('email')
+    user_email = st.session_state["user_info"].get("email")
 
     # Chat interface
     for message in st.session_state.messages:
@@ -254,40 +278,46 @@ else:
                 response = query_backend(prompt, user_email)
                 if response:
                     st.markdown(response)
-                    st.session_state.messages.append({"role": "assistant", "content": response})
+                    st.session_state.messages.append(
+                        {"role": "assistant", "content": response}
+                    )
 
     # Sidebar
     with st.sidebar:
         # user info
-        st.image(st.session_state['user_info'].get('picture'))
+        st.image(st.session_state["user_info"].get("picture"))
         st.write(f"Hello, {st.session_state['user_info'].get('name')}")
-        st.write(st.session_state['user_info'].get('email'))
+        st.write(st.session_state["user_info"].get("email"))
 
         # About Section
         st.markdown("### 📚 About")
-        st.markdown("""
+        st.markdown(
+            """
         This is a RAG-powered chat interface that allows you to:
         - Ask questions about ingested documents
         - Get AI-generated responses based on the document content
         - Have natural conversations about the stored knowledge
-        """)
-        
+        """
+        )
+
         st.divider()
-        
+
         # File Upload Section
         st.markdown("### 📤 Upload Document")
-        st.markdown(f"""
+        st.markdown(
+            f"""
         Add new documents to the knowledge base:
         - Supported: {', '.join(ALLOWED_EXTENSIONS.keys())}
         - Max size: {MAX_FILE_SIZE/1024/1024}MB
-        """)
-        
+        """
+        )
+
         uploaded_file = st.file_uploader(
             "Choose a file",
             type=list(ALLOWED_EXTENSIONS.keys()),
-            help=f"Maximum file size: {MAX_FILE_SIZE/1024/1024}MB"
+            help=f"Maximum file size: {MAX_FILE_SIZE/1024/1024}MB",
         )
-        
+
         if uploaded_file is not None:
             # Validate file
             is_valid, message = validate_file(uploaded_file)
@@ -303,9 +333,9 @@ else:
                             st.error(message)
             else:
                 st.error(message)
-        
+
         st.divider()
-        
+
         # Logout button
         if st.button("Logout", use_container_width=True, type="primary"):
             st.session_state.messages = []

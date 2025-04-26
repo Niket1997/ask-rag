@@ -1,9 +1,11 @@
-import os
-from dotenv import load_dotenv
 import json
+import os
 import tempfile
 
+from dotenv import load_dotenv
+
 load_dotenv()
+
 
 def get_google_credentials(env_var_name: str = "GOOGLE_CREDENTIALS_JSON") -> str:
     """
@@ -19,7 +21,9 @@ def get_google_credentials(env_var_name: str = "GOOGLE_CREDENTIALS_JSON") -> str
     # 1. Retrieve from environment
     credentials_json = os.getenv(env_var_name)
     if not credentials_json:
-        raise EnvironmentError(f"Environment variable '{env_var_name}' is not set or is empty.")
+        raise EnvironmentError(
+            f"Environment variable '{env_var_name}' is not set or is empty."
+        )
 
     # 2. Validate JSON
     try:

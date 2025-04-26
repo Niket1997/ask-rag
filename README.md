@@ -14,6 +14,7 @@ A RAG (Retrieval-Augmented Generation) application that allows users to ask ques
 - `OPENAI_API_KEY`: OPENAI API KEY (ref)[https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327]
 - `QDRANT_URL`: URL of the QDRANT API (default: http://localhost:6333)
 - `GOOGLE_CREDENTIALS_JSON`='{json_content}' (ref)[https://pypi.org/project/streamlit-google-auth/]
+- `BACKEND_API_KEY`: API key for service to service communication between UI application & FastAPI backend application.
 
 # Backend
 ## API Endpoints

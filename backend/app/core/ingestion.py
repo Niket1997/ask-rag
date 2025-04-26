@@ -1,10 +1,9 @@
 import os
 from typing import Any, Dict
 
+from app.core.constants import embeddings, text_splitter
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_qdrant import QdrantVectorStore
-
-from app.core.constants import embeddings, text_splitter
 
 
 def ingest_pdf(file_path: str, user_email: str) -> Dict[str, Any]:

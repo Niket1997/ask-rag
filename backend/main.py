@@ -4,9 +4,8 @@
 # 2. /ask
 # 3. /authenticate # optional
 
-from fastapi import FastAPI
-
 from app.api.endpoints import router
+from fastapi import FastAPI
 
 app = FastAPI()
 
