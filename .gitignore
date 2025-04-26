@@ -32,3 +32,6 @@ ENV/
 # Qdrant data
 backend/qdrant_data/
 **/qdrant_data/
+
+# Google credentials
+**/google_credentials.json
