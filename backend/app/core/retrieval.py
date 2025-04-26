@@ -13,24 +13,38 @@ from app.core.constants import embeddings, llm, qdrant_client
 
 # Retrieve the answer from LLM based on the query
 # and the documents retrieved from Qdrant
-def retrieve_answer(query: str) -> str:
+def retrieve_answer(query: str, user_id: str) -> str:
     # get the vector embeddings assocoated with that query
-    vector_store = QdrantVectorStore(
-        collection_name="test-stock-investing-101",
-        embedding=embeddings,
-        client=qdrant_client,
-    )
+    try:
+        system_prompt = """
+            You are a helpful AI assistant that can asnwer user's questions based on the documents provided.
+            If there aren't any related documents, then you can provide the answer based on your knowledge.
+            If the user's query is not related to the documents, then you should provide the answer based on your knowledge.
+            Think carefully before answering the user's question.
 
-    found_docs = vector_store.similarity_search(query, k=5)
+            For example:
+            User: What is the capital of France? You answer this because the user's query is not related to the documents.
+            You: The capital of France is Paris.
 
-    system_prompt = f"""
-    You are a helpful AI assistant that can asnwer user's questions based on the documents provided.
-    If there aren't any related documents, then you can provide the answer based on your knowledge.
-    Think carefully before answering the user's question.
-    Documents: {'\n'.join([doc.page_content for doc in found_docs])}
-    """
+            User: How to invest in stocks? You answer this because the user's query is related to the documents.
+            You: You can invest in stocks by opening a demat account with a stockbroker. 
+            
+        """
+        if qdrant_client.collection_exists(user_id):
+            vector_store = QdrantVectorStore(
+                collection_name=user_id,
+                embedding=embeddings,
+                client=qdrant_client,
+            )
 
-    messages = [("system", system_prompt), ("user", query)]
+            found_docs = vector_store.similarity_search(query, k=5)
+            system_prompt += f"""
+                Documents: {'\n'.join([doc.page_content for doc in found_docs])}
+            """
 
-    response = llm.invoke(messages)
-    return response.content
+        messages = [("system", system_prompt), ("user", query)]
+
+        response = llm.invoke(messages)
+        return response.content
+    except Exception as e:
+        return f"An error occurred: {e}"

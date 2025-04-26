@@ -13,6 +13,14 @@ st.set_page_config(
     layout="wide"
 )
 
+# Constants for file upload
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+ALLOWED_EXTENSIONS = {
+    'pdf': 'PDF Document',
+}
+
+USER_ID = "123456"
+
 # Initialize session state variables
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -23,15 +31,42 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 def query_backend(message):
     """Send a query to the backend and get the response."""
     try:
+        data = {'query': message, 'user_id': USER_ID}
         response = requests.post(
             f"{BACKEND_URL}/ask",
-            json={"query": message}
+            json=data
         )
         response.raise_for_status()
         return response.json()["answer"]
     except requests.exceptions.RequestException as e:
         st.error(f"Error communicating with backend: {str(e)}")
         return None
+
+def upload_file(file):
+    """Upload a file to the backend."""
+    try:
+        files = {'file': (file.name, file.getvalue(), file.type)}
+        data = {'user_id': USER_ID}
+        response = requests.post(
+            f"{BACKEND_URL}/ingest",
+            files=files,
+            data=data
+        )
+        response.raise_for_status()
+        return True, "File ingested successfully!"
+    except requests.exceptions.RequestException as e:
+        return False, f"Error ingesting file: {str(e)}"
+
+def validate_file(file):
+    """Validate the uploaded file."""
+    if file.size > MAX_FILE_SIZE:
+        return False, f"File size exceeds the maximum limit of {MAX_FILE_SIZE/1024/1024}MB"
+    
+    file_extension = file.name.split('.')[-1].lower()
+    if file_extension not in ALLOWED_EXTENSIONS:
+        return False, f"File type not supported. Allowed types: {', '.join(ALLOWED_EXTENSIONS.keys())}"
+    
+    return True, "File is valid"
 
 # App title
 st.title("🤖 RAG Chat Assistant")
@@ -64,7 +99,8 @@ if prompt := st.chat_input("What would you like to know?"):
 
 # Sidebar
 with st.sidebar:
-    st.header("About")
+    # About Section
+    st.markdown("### 📚 About")
     st.markdown("""
     This is a RAG-powered chat interface that allows you to:
     - Ask questions about ingested documents
@@ -72,7 +108,39 @@ with st.sidebar:
     - Have natural conversations about the stored knowledge
     """)
     
-    # Clear chat button
-    if st.button("Clear Chat"):
+    st.divider()
+    
+    # File Upload Section
+    st.markdown("### 📤 Upload Document")
+    st.markdown(f"""
+    Add new documents to the knowledge base:
+    - Supported: {', '.join(ALLOWED_EXTENSIONS.keys())}
+    - Max size: {MAX_FILE_SIZE/1024/1024}MB
+    """)
+    
+    uploaded_file = st.file_uploader(
+        "Choose a file",
+        type=list(ALLOWED_EXTENSIONS.keys()),
+        help=f"Maximum file size: {MAX_FILE_SIZE/1024/1024}MB"
+    )
+    
+    if uploaded_file is not None:
+        # Validate file
+        is_valid, message = validate_file(uploaded_file)
+        if is_valid:
+            # Upload file
+            with st.spinner("Uploading file..."):
+                success, message = upload_file(uploaded_file)
+                if success:
+                    st.success(message)
+                else:
+                    st.error(message)
+        else:
+            st.error(message)
+        uploaded_file = None
+    
+    st.divider()
+    
+    if st.button("Clear Chat", use_container_width=True):
         st.session_state.messages = []
         st.rerun() 
