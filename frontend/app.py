@@ -189,9 +189,11 @@ if not st.session_state.get('connected', False):
     col1, col2, col3 = st.columns([1,2,1])
     authorization_url = authenticator.get_authorization_url()
     with col2:
-        if st.link_button('Login with Google', authorization_url, use_container_width=True):
-            st.rerun()
+        st.link_button('Login with Google', authorization_url, use_container_width=True)
 else:
+    # Logout button
+    if st.button("Clear Chat", use_container_width=False):
+        st.session_state.messages = []
     # Description
     st.markdown("""
     This chat interface allows you to interact with documents that have been ingested into the system.
@@ -220,6 +222,11 @@ else:
 
     # Sidebar
     with st.sidebar:
+        # user info
+        st.image(st.session_state['user_info'].get('picture'))
+        st.write(f"Hello, {st.session_state['user_info'].get('name')}")
+        st.write(st.session_state['user_info'].get('email'))
+
         # About Section
         st.markdown("### 📚 About")
         st.markdown("""
@@ -267,4 +274,3 @@ else:
         if st.button("Logout", use_container_width=True):
             st.session_state.messages = []
             authenticator.logout()
-            st.rerun()
