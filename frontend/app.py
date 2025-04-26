@@ -13,6 +13,26 @@ st.set_page_config(
     layout="wide"
 )
 
+# Custom CSS for buttons
+st.markdown("""
+    <style>
+    div.stButton > button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+    }
+    div.stButton > button:hover {
+        background-color: #45a049;
+    }
+    div.stButton > button:active {
+        background-color: #3d8b40;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Constants for file upload
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 ALLOWED_EXTENSIONS = {
@@ -128,16 +148,17 @@ with st.sidebar:
         # Validate file
         is_valid, message = validate_file(uploaded_file)
         if is_valid:
-            # Upload file
-            with st.spinner("Uploading file..."):
-                success, message = upload_file(uploaded_file)
-                if success:
-                    st.success(message)
-                else:
-                    st.error(message)
+            # Add upload button
+            if st.button("Upload File", use_container_width=True):
+                # Upload file
+                with st.spinner("Uploading file..."):
+                    success, message = upload_file(uploaded_file)
+                    if success:
+                        st.success(message)
+                    else:
+                        st.error(message)
         else:
             st.error(message)
-        uploaded_file = None
     
     st.divider()
     

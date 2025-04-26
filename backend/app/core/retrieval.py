@@ -8,8 +8,10 @@
 
 from langchain_qdrant import QdrantVectorStore
 
-from app.core.constants import embeddings, llm, qdrant_client
+from app.core.constants import embeddings, llm, qdrant_client, info_logger
 
+# Similarity threshold for considering a document relevant
+SIMILARITY_THRESHOLD = 0.40
 
 # Retrieve the answer from LLM based on the query
 # and the documents retrieved from Qdrant
@@ -37,10 +39,14 @@ def retrieve_answer(query: str, user_id: str) -> str:
                 client=qdrant_client,
             )
 
-            found_docs = vector_store.similarity_search(query, k=5)
-            system_prompt += f"""
-                Documents: {'\n'.join([doc.page_content for doc in found_docs])}
-            """
+            # Get documents with their similarity scores
+            relevant_docs = vector_store.similarity_search_with_score(query, k=5, score_threshold=SIMILARITY_THRESHOLD)
+
+            if relevant_docs:
+                info_logger.info(f"retrieved {len(relevant_docs)} relevant documents")
+                system_prompt += f"""
+                    Documents: {'\n'.join([doc.page_content for doc, _ in relevant_docs])}
+                """
 
         messages = [("system", system_prompt), ("user", query)]
 
