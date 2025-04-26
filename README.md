@@ -18,6 +18,19 @@ Edit the `.env` file to configure following environment variables.
 - `BACKEND_API_KEY`: API key for service to service communication between UI application & FastAPI backend application.
 
 # Backend
+## Prerequisites
+
+Before starting the application, you need to set up the required services using Docker Compose:
+
+```bash
+# Start Qdrant and Redis services
+cd backend
+docker-compose up -d
+```
+
+This will start:
+- Qdrant vector database on port 6333
+
 ## API Endpoints
 
 - `POST /ingest`: Upload and process PDF documents
@@ -43,7 +56,7 @@ cd backend
 uvicorn main:app --reload
 ```
 
-2. Access the API documentation at `http://localhost:8000/docs`
+4. Access the API documentation at `http://localhost:8000/docs`
 
 # Frontend
 
