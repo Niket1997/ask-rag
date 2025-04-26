@@ -35,3 +35,4 @@ backend/qdrant_data/
 
 # Google credentials
 **/google_credentials.json
+**/google_credentials_test.json

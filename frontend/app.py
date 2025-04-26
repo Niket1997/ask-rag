@@ -3,6 +3,7 @@ import requests
 import os
 from dotenv import load_dotenv
 from streamlit_google_auth import Authenticate
+from google_credential_file_generator import get_google_credentials
 
 # Load environment variables
 load_dotenv()
@@ -127,7 +128,7 @@ ALLOWED_EXTENSIONS = {
 }
 
 authenticator = Authenticate(
-    secret_credentials_path='google_credentials.json',
+    secret_credentials_path=get_google_credentials(),
     cookie_name='my_cookie_name',
     cookie_key='this_is_secret',
     redirect_uri='http://localhost:8501',

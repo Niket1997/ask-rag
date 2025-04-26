@@ -9,6 +9,12 @@ A RAG (Retrieval-Augmented Generation) application that allows users to ask ques
 - **Vector Search**: Efficient semantic search using Qdrant
 - **LLM Integration**: Powered by LangChain for intelligent responses
 
+## Environment Variables
+- `BACKEND_URL`: URL of the backend API (default: http://localhost:8000) 
+- `OPENAI_API_KEY`: OPENAI API KEY (ref)[https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327]
+- `QDRANT_URL`: URL of the QDRANT API (default: http://localhost:6333)
+- `GOOGLE_CREDENTIALS_JSON`='{json_content}' (ref)[https://pypi.org/project/streamlit-google-auth/]
+
 # Backend
 ## API Endpoints
 
@@ -35,7 +41,7 @@ cd backend
 uvicorn main:app --reload
 ```
 
-3. Access the API documentation at `http://localhost:8000/docs`
+2. Access the API documentation at `http://localhost:8000/docs`
 
 # Frontend
 
@@ -62,6 +68,3 @@ The application will be available at http://localhost:8501
 - Responsive design
 - Error handling for backend communication
 
-## Environment Variables
-
-- `BACKEND_URL`: URL of the backend API (default: http://localhost:8000) 
