@@ -2,7 +2,6 @@
 # this will expose following endpoints:
 # 1. /ingest
 # 2. /ask
-# 3. /authenticate # optional
 
 from app.api.endpoints import router
 from fastapi import FastAPI
