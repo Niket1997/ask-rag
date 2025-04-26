@@ -8,13 +8,12 @@
 
 from langchain_qdrant import QdrantVectorStore
 
-from backend.app.core.constants import embeddings, llm, qdrant_client
+from app.core.constants import embeddings, llm, qdrant_client
 
-while True:
-    query = input("> ")
-    if query == "exit":
-        break
 
+# Retrieve the answer from LLM based on the query
+# and the documents retrieved from Qdrant
+def retrieve_answer(query: str) -> str:
     # get the vector embeddings assocoated with that query
     vector_store = QdrantVectorStore(
         collection_name="test-stock-investing-101",
@@ -34,5 +33,4 @@ while True:
     messages = [("system", system_prompt), ("user", query)]
 
     response = llm.invoke(messages)
-    print(f"🤖: {response.content}")
-    print("\n")
+    return response.content

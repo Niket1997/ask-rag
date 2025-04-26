@@ -1,4 +1,5 @@
 # Constants for the ask-rag application
+import logging
 import os
 
 from dotenv import load_dotenv
@@ -6,7 +7,12 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from qdrant_client import QdrantClient
 
+# load the environment variables
 load_dotenv()
+
+# Initialize the logging
+error_logger = logging.getLogger("uvicorn.error")
+info_logger = logging.getLogger("uvicorn.info")
 
 # Initialize the text splitter
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)

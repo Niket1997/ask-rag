@@ -1,19 +1,22 @@
-import logging
 import os
 import tempfile
 
-from fastapi import APIRouter, Header, HTTPException, UploadFile
+from fastapi import APIRouter, Header, HTTPException, Request, UploadFile
+from pydantic import BaseModel, Field
 
 from app.core.config import (ALLOWED_FILE_TYPES, TEMP_FILE_PREFIX,
                              TEMP_FILE_SUFFIX)
+from app.core.constants import error_logger, info_logger
 from app.core.ingestion import ingest_pdf
+from app.core.retrieval import retrieve_answer
 from app.core.validation import (FileValidationError, validate_file_content,
                                  validate_file_headers)
 
-error_logger = logging.getLogger("uvicorn.error")
-info_logger = logging.getLogger("uvicorn.info")
-
 router = APIRouter()
+
+
+class QueryRequest(BaseModel):
+    query: str = Field(..., min_length=3, max_length=500)
 
 
 @router.get("/")
@@ -21,6 +24,7 @@ def read_root():
     return {"message": "Hello, World!"}
 
 
+# Ingest the file into the database
 @router.post("/ingest")
 async def ingest_file(file: UploadFile, content_length: int = Header(None)):
     temp_file_path = None
@@ -76,3 +80,20 @@ async def ingest_file(file: UploadFile, content_length: int = Header(None)):
         # Clean up temporary file
         if temp_file_path and os.path.exists(temp_file_path):
             os.unlink(temp_file_path)
+
+
+# Retrieve the answer from LLM based on the query
+@router.post("/ask")
+async def ask_question(request: QueryRequest):
+    try:
+        # Log the query
+        info_logger.info(f"Processing query: {request.query}")
+
+        # Get answer from LLM
+        answer = retrieve_answer(request.query)
+
+        return {"status": "success", "query": request.query, "answer": answer}
+
+    except Exception as e:
+        error_logger.error(f"Error processing query: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
