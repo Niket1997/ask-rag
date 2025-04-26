@@ -30,7 +30,8 @@ pip install -r requirements.txt
 
 2. Start the application:
 ```bash
-uvicorn backend.main:app --reload
+cd backend
+uvicorn main:app --reload
 ```
 
 3. Access the API documentation at `http://localhost:8000/docs`
