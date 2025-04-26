@@ -15,7 +15,7 @@ SIMILARITY_THRESHOLD = 0.40
 
 # Retrieve the answer from LLM based on the query
 # and the documents retrieved from Qdrant
-def retrieve_answer(query: str, user_id: str) -> str:
+def retrieve_answer(query: str, user_email: str) -> str:
     # get the vector embeddings assocoated with that query
     try:
         system_prompt = """
@@ -32,9 +32,9 @@ def retrieve_answer(query: str, user_id: str) -> str:
             You: You can invest in stocks by opening a demat account with a stockbroker. 
             
         """
-        if qdrant_client.collection_exists(user_id):
+        if qdrant_client.collection_exists(user_email):
             vector_store = QdrantVectorStore(
-                collection_name=user_id,
+                collection_name=user_email,
                 embedding=embeddings,
                 client=qdrant_client,
             )

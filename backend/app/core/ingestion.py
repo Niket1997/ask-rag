@@ -7,7 +7,7 @@ from langchain_qdrant import QdrantVectorStore
 from app.core.constants import embeddings, text_splitter
 
 
-def ingest_pdf(file_path: str, user_id: str) -> Dict[str, Any]:
+def ingest_pdf(file_path: str, user_email: str) -> Dict[str, Any]:
     """
     Process and ingest a PDF file
 
@@ -30,7 +30,7 @@ def ingest_pdf(file_path: str, user_id: str) -> Dict[str, Any]:
             documents=chunks,
             embedding=embeddings,
             url=os.getenv("QDRANT_URL"),
-            collection_name=user_id,
+            collection_name=user_email,
         )
 
         return {

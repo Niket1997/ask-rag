@@ -1,8 +1,9 @@
 import os
 import tempfile
+import re
 
 from fastapi import APIRouter, Header, HTTPException, Request, UploadFile, Form
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 
 from app.core.config import (ALLOWED_FILE_TYPES, TEMP_FILE_PREFIX,
                              TEMP_FILE_SUFFIX)
@@ -18,7 +19,7 @@ router = APIRouter()
 # Query request
 class QueryRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=500)
-    user_id: str = Field(..., min_length=6, max_length=6)
+    user_email: EmailStr = Field(..., description="Valid email address")
 
 # Read root
 @router.get("/")
@@ -31,7 +32,7 @@ def read_root():
 async def ingest_file(
     file: UploadFile, 
     content_length: int = Header(None),
-    user_id: str = Form(..., min_length=6, max_length=6)
+    user_email: EmailStr = Form(..., description="Valid email address")
 ):
     temp_file_path = None
 
@@ -54,7 +55,7 @@ async def ingest_file(
 
         # Process the file
         if file.content_type == "application/pdf":
-            metadata = ingest_pdf(temp_file_path, user_id)
+            metadata = ingest_pdf(temp_file_path, user_email)
 
             # Log successful ingestion
             info_logger.info(
@@ -96,7 +97,7 @@ async def ask_question(request: QueryRequest):
         info_logger.info(f"Processing query: {request.query}")
 
         # Get answer from LLM
-        answer = retrieve_answer(request.query, request.user_id)
+        answer = retrieve_answer(request.query, request.user_email)
 
         return {"status": "success", "query": request.query, "answer": answer}
 

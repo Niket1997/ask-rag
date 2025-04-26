@@ -17,7 +17,8 @@ st.set_page_config(
 # Custom CSS for buttons and login page
 st.markdown("""
     <style>
-    div.stButton > button {
+    /* Regular button styles */
+    button[kind="primary"] {
         background-color: #4CAF50;
         color: white;
         border: none;
@@ -25,12 +26,41 @@ st.markdown("""
         border-radius: 5px;
         font-weight: bold;
     }
-    div.stButton > button:hover {
+    button[kind="primary"]:hover {
         background-color: #45a049;
     }
-    div.stButton > button:active {
+    button[kind="primary"]:active {
         background-color: #3d8b40;
     }
+    
+    /* Clear Chat button styles */
+    button[kind="secondary"] {
+        background-color: #dc3545 !important;
+        color: white !important;
+    }
+    button[kind="secondary"]:hover {
+        background-color: #c82333 !important;
+    }
+    button[kind="secondary"]:active {
+        background-color: #bd2130 !important;
+    }
+            
+    button[kind="tertiary"] {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+    }
+            
+    button[kind="tertiary"]:hover {
+        background-color: #45a049;
+    }
+    button[kind="tertiary"]:active {
+        background-color: #3d8b40;
+    }
+    
     .login-container {
         display: flex;
         flex-direction: column;
@@ -96,8 +126,6 @@ ALLOWED_EXTENSIONS = {
     'pdf': 'PDF Document',
 }
 
-USER_ID = "123456"
-
 authenticator = Authenticate(
     secret_credentials_path='google_credentials.json',
     cookie_name='my_cookie_name',
@@ -115,12 +143,12 @@ if "messages" not in st.session_state:
 # Backend API URL
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
-def query_backend(message):
+def query_backend(message, user_email):
     """Send a query to the backend and get the response."""
     try:
         response = requests.post(
             f"{BACKEND_URL}/ask",
-            json={"query": message, "user_id": USER_ID}
+            json={"query": message, "user_email": user_email}
         )
         response.raise_for_status()
         return response.json()["answer"]
@@ -128,11 +156,11 @@ def query_backend(message):
         st.error(f"Error communicating with backend: {str(e)}")
         return None
 
-def upload_file(file):
+def upload_file(file, user_email):
     """Upload a file to the backend."""
     try:
         files = {'file': (file.name, file.getvalue(), file.type)}
-        data = {'user_id': USER_ID}
+        data = {'user_email': user_email}
         response = requests.post(
             f"{BACKEND_URL}/ingest",
             files=files,
@@ -186,19 +214,26 @@ if not st.session_state.get('connected', False):
         </div>
     """, unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns([1,2,1])
+    col1, col2, col3 = st.columns([3,2,3])
     authorization_url = authenticator.get_authorization_url()
     with col2:
-        st.link_button('Login with Google', authorization_url, use_container_width=True)
+        st.link_button('Login with Google', authorization_url, use_container_width=True, type="primary")
 else:
-    # Logout button
-    if st.button("Clear Chat", use_container_width=False):
-        st.session_state.messages = []
+    # Create two columns for the Clear Chat button
+    col1, col2 = st.columns([7, 1])
+    with col2:
+        if st.button("Clear Chat", use_container_width=True, type="secondary"):
+            st.session_state.messages = []
+            st.rerun()
+    
     # Description
     st.markdown("""
     This chat interface allows you to interact with documents that have been ingested into the system.
     Ask questions about the content, and the AI will provide relevant answers based on the stored knowledge.
     """)
+
+    # Get user email
+    user_email = st.session_state['user_info'].get('email')
 
     # Chat interface
     for message in st.session_state.messages:
@@ -215,7 +250,7 @@ else:
         # Get AI response
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                response = query_backend(prompt)
+                response = query_backend(prompt, user_email)
                 if response:
                     st.markdown(response)
                     st.session_state.messages.append({"role": "assistant", "content": response})
@@ -257,10 +292,10 @@ else:
             is_valid, message = validate_file(uploaded_file)
             if is_valid:
                 # Add upload button
-                if st.button("Upload File", use_container_width=True):
+                if st.button("Upload File", use_container_width=True, type="primary"):
                     # Upload file
                     with st.spinner("Uploading file..."):
-                        success, message = upload_file(uploaded_file)
+                        success, message = upload_file(uploaded_file, user_email)
                         if success:
                             st.success(message)
                         else:
@@ -271,6 +306,6 @@ else:
         st.divider()
         
         # Logout button
-        if st.button("Logout", use_container_width=True):
+        if st.button("Logout", use_container_width=True, type="primary"):
             st.session_state.messages = []
             authenticator.logout()
