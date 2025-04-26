@@ -125,7 +125,6 @@ with st.sidebar:
     This is a RAG-powered chat interface that allows you to:
     - Ask questions about ingested documents
     - Get AI-generated responses based on the document content
-    - Have natural conversations about the stored knowledge
     """)
     
     st.divider()
