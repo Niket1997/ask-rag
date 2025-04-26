@@ -7,7 +7,7 @@
 # 4. query the LLM to answer user's question
 
 from langchain_qdrant import QdrantVectorStore
-from constants import embeddings, qdrant_client, llm
+from backend.app.core.constants import embeddings, qdrant_client, llm
 
 
 while True:
