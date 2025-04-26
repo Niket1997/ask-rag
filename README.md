@@ -10,6 +10,7 @@ A RAG (Retrieval-Augmented Generation) application that allows users to ask ques
 - **LLM Integration**: Powered by LangChain for intelligent responses
 
 ## Environment Variables
+Edit the `.env` file to configure following environment variables. 
 - `BACKEND_URL`: URL of the backend API (default: http://localhost:8000) 
 - `OPENAI_API_KEY`: OPENAI API KEY (ref)[https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327]
 - `QDRANT_URL`: URL of the QDRANT API (default: http://localhost:6333)
@@ -47,8 +48,6 @@ uvicorn main:app --reload
 # Frontend
 
 This is a Streamlit-based chat interface for interacting with the RAG backend system.
-
-Edit the `.env` file to configure your backend URL if needed.
 
 ## Running the Application
 
