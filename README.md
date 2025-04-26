@@ -55,6 +55,7 @@ Edit the `.env` file to configure your backend URL if needed.
 To start the Streamlit app:
 
 ```bash
+cd frontend
 streamlit run app.py
 ```
 
