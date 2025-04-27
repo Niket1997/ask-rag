@@ -47,7 +47,8 @@ This will start:
 - Qdrant for vector storage
 - Redis for caching and session management
 - LangChain for document processing and LLM integration
-- HuggingFace embeddings for semantic search
+- OpenAI embeddings for generating vector embeddings
+- OpenAI models for generating responses
 
 ## Getting Started
 
