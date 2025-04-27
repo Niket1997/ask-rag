@@ -16,6 +16,7 @@ Edit the `.env` file to configure following environment variables.
 - `QDRANT_URL`: URL of the QDRANT API (default: http://localhost:6333)
 - `GOOGLE_CREDENTIALS_JSON`='{json_content}' (ref)[https://pypi.org/project/streamlit-google-auth/]
 - `BACKEND_API_KEY`: API key for service to service communication between UI application & FastAPI backend application.
+- `REDIS_PASSWORD`: Password for Redis authentication
 
 # Backend
 ## Prerequisites
@@ -30,6 +31,7 @@ docker-compose up -d
 
 This will start:
 - Qdrant vector database on port 6333
+- Redis on port 6379 (with password authentication)
 
 ## API Endpoints
 
@@ -40,6 +42,7 @@ This will start:
 
 - FastAPI for the backend API
 - Qdrant for vector storage
+- Redis for caching and session management
 - LangChain for document processing and LLM integration
 - HuggingFace embeddings for semantic search
 

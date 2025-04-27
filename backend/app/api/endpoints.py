@@ -3,12 +3,21 @@ import re
 import tempfile
 
 from app.core.auth import verify_api_key
-from app.core.config import ALLOWED_FILE_TYPES, TEMP_FILE_PREFIX, TEMP_FILE_SUFFIX
+from app.core.config import (
+    ALLOWED_FILE_TYPES,
+    RATE_LIMIT_MAX_REQUESTS_ASK_API,
+    RATE_LIMIT_MAX_REQUESTS_INGESTION_API,
+    RATE_LIMIT_WINDOW_SECONDS_ASK_API,
+    RATE_LIMIT_WINDOW_SECONDS_INGESTION_API,
+    TEMP_FILE_PREFIX,
+    TEMP_FILE_SUFFIX,
+)
 from app.core.constants import error_logger, info_logger
 from app.core.ingestion import ingest_pdf
 from app.core.retrieval import retrieve_answer
 from app.core.validation import (
     FileValidationError,
+    check_rate_limit,
     validate_file_content,
     validate_file_headers,
 )
@@ -38,6 +47,18 @@ async def ingest_file(
     user_email: EmailStr = Form(..., description="Valid email address"),
     api_key: str = Depends(verify_api_key),
 ):
+    # Check rate limit
+    if not check_rate_limit(
+        user_email,
+        "ingest",
+        max_requests=RATE_LIMIT_MAX_REQUESTS_INGESTION_API,
+        window_seconds=RATE_LIMIT_WINDOW_SECONDS_INGESTION_API,
+    ):
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded. Maximum {RATE_LIMIT_MAX_REQUESTS_INGESTION_API} file uploads allowed in last {RATE_LIMIT_WINDOW_SECONDS_INGESTION_API/3600} hours.",
+        )
+
     temp_file_path = None
 
     try:
@@ -96,6 +117,18 @@ async def ingest_file(
 # Retrieve the answer from LLM based on the query
 @router.post("/ask")
 async def ask_question(request: QueryRequest, api_key: str = Depends(verify_api_key)):
+    # Check rate limit
+    if not check_rate_limit(
+        request.user_email,
+        "ask",
+        max_requests=RATE_LIMIT_MAX_REQUESTS_ASK_API,
+        window_seconds=RATE_LIMIT_WINDOW_SECONDS_ASK_API,
+    ):
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded. Maximum {RATE_LIMIT_MAX_REQUESTS_ASK_API} questions allowed in last {RATE_LIMIT_WINDOW_SECONDS_ASK_API/3600} hours.",
+        )
+
     try:
         # Log the query
         info_logger.info(f"Processing query: {request.query}")

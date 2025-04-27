@@ -6,32 +6,30 @@
 # 3. generate a system prompt using the retrieved vector embeddings
 # 4. query the LLM to answer user's question
 
-from app.core.constants import embeddings, info_logger, llm, qdrant_client
+from app.core.constants import embeddings, info_logger, llm, qdrant_client, redis_client
 from langchain_qdrant import QdrantVectorStore
 
 # Similarity threshold for considering a document relevant
-SIMILARITY_THRESHOLD = 0.40
+SIMILARITY_THRESHOLD = 0.60
 
 
 # Retrieve the answer from LLM based on the query
 # and the documents retrieved from Qdrant
+# TODO: we can use memoization here (mem0) to cache the results using the user's email as the key
 def retrieve_answer(query: str, user_email: str) -> str:
+    system_prompt = """
+    You are a helpful AI assistant that can answer user's questions based on the documents provided.
+    If there aren't any related documents, or if the user's query is not related to the documents, then you can provide the answer based on your knowledge.        Think carefully before answering the user's question.
+
+    For example:
+    User: What is the capital of France? You answer this because the user's query is not related to the documents.
+    You: The capital of France is Paris.
+
+    User: How to invest in stocks? You answer this because the user's query is related to the documents.
+    You: You can invest in stocks by opening a demat account with a stockbroker. 
+    """
     # get the vector embeddings assocoated with that query
     try:
-        system_prompt = """
-            You are a helpful AI assistant that can asnwer user's questions based on the documents provided.
-            If there aren't any related documents, then you can provide the answer based on your knowledge.
-            If the user's query is not related to the documents, then you should provide the answer based on your knowledge.
-            Think carefully before answering the user's question.
-
-            For example:
-            User: What is the capital of France? You answer this because the user's query is not related to the documents.
-            You: The capital of France is Paris.
-
-            User: How to invest in stocks? You answer this because the user's query is related to the documents.
-            You: You can invest in stocks by opening a demat account with a stockbroker. 
-            
-        """
         if qdrant_client.collection_exists(user_email):
             vector_store = QdrantVectorStore(
                 collection_name=user_email,
@@ -50,6 +48,7 @@ def retrieve_answer(query: str, user_email: str) -> str:
                     Documents: {'\n'.join([doc.page_content for doc, _ in relevant_docs])}
                 """
 
+        info_logger.info(f"system prompt: {system_prompt}")
         messages = [("system", system_prompt), ("user", query)]
 
         response = llm.invoke(messages)

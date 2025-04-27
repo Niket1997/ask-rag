@@ -2,6 +2,7 @@
 import logging
 import os
 
+import redis
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -31,4 +32,11 @@ qdrant_client = QdrantClient(
 # create LLM
 llm = ChatOpenAI(
     model="gpt-4.1",
+)
+
+# create redis client
+redis_client = redis.Redis(
+    host=os.getenv("REDIS_HOST"),
+    port=int(os.getenv("REDIS_PORT")),
+    password=os.getenv("REDIS_PASSWORD"),
 )

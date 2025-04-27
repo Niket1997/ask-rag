@@ -1,10 +1,13 @@
 import os
+from datetime import datetime
 from typing import Optional
 
 from app.core.config import ALLOWED_FILE_TYPES, CHUNK_SIZE, MAX_FILE_SIZE
+from app.core.constants import redis_client
 from fastapi import UploadFile
 
 
+# Custom exception for file validation errors
 class FileValidationError(Exception):
     """Custom exception for file validation errors"""
 
@@ -14,6 +17,7 @@ class FileValidationError(Exception):
         super().__init__(self.message)
 
 
+# Validate the file headers
 async def validate_file_headers(
     content_type: Optional[str], content_length: Optional[int], filename: Optional[str]
 ) -> None:
@@ -42,6 +46,7 @@ async def validate_file_headers(
         )
 
 
+# Validate the file content
 async def validate_file_content(file: UploadFile, temp_file_path: str) -> int:
     """
     Second layer validation - Actual content validation
@@ -73,3 +78,30 @@ async def validate_file_content(file: UploadFile, temp_file_path: str) -> int:
         if os.path.exists(temp_file_path):
             os.unlink(temp_file_path)
         raise e
+
+
+# Check if the user has exceeded the rate limit for the given endpoint using a sliding window
+def check_rate_limit(
+    user_email: str, endpoint: str, max_requests: int = 20, window_seconds: int = 86400
+) -> bool:
+    """
+    Check if the user has exceeded the rate limit for the given endpoint using a sliding window
+    """
+    # Create Redis key for the sliding window
+    redis_key = f"rate_limit:{endpoint}:{user_email}"
+
+    # Get current count
+    current_count = redis_client.get(redis_key)
+
+    if current_count is None:
+        # First request in the window
+        redis_client.setex(redis_key, window_seconds, 1)
+        return True
+
+    current_count = int(current_count)
+    if current_count >= max_requests:
+        return False
+
+    # Increment counter
+    redis_client.incr(redis_key)
+    return True
