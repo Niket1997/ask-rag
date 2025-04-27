@@ -79,7 +79,7 @@ streamlit run app.py
 
 The application will be available at http://localhost:8501
 
-## Features
+## UI Features
 
 - Clean and intuitive chat interface
 - Real-time communication with the backend
