@@ -1,9 +1,13 @@
 import os
 from typing import Any, Dict
 
-from app.core.constants import embeddings, text_splitter
+from app.core.constants import (
+    create_collection_if_not_exists,
+    get_vector_store,
+    text_splitter,
+    info_logger,
+)
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_qdrant import QdrantVectorStore
 
 
 def ingest_pdf(file_path: str, user_email: str) -> Dict[str, Any]:
@@ -25,13 +29,9 @@ def ingest_pdf(file_path: str, user_email: str) -> Dict[str, Any]:
         chunks = text_splitter.split_documents(docs)
 
         # 3. generate vector embeddings for the data & store in Qdrant
-        QdrantVectorStore.from_documents(
-            documents=chunks,
-            embedding=embeddings,
-            url=os.getenv("QDRANT_URL"),
-            api_key=os.getenv("QDRANT_API_KEY"),
-            collection_name=user_email,
-        )
+        create_collection_if_not_exists(user_email)
+        vector_store = get_vector_store(user_email)
+        vector_store.add_documents(chunks)
 
         return {
             "pages": len(docs),

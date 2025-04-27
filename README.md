@@ -15,12 +15,14 @@ Edit the `.env` file to configure following environment variables.
 - `BACKEND_URL`: URL of the backend API (default: http://localhost:8000) 
 - `OPENAI_API_KEY`: OPENAI API KEY (ref)[https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327]
 - `QDRANT_URL`: URL of the QDRANT API (default: http://localhost:6333)
-- `QDRANT_API_KEY`: API key for qdrant db
 - `GOOGLE_CREDENTIALS_JSON`='{json_content}' (ref)[https://pypi.org/project/streamlit-google-auth/]
 - `BACKEND_API_KEY`: API key for service to service communication between UI application & FastAPI backend application.
 - `REDIS_HOST`: host associated with redis (default:localhost)
 - `REDIS_PORT`: port associated with redis (default:6379)
 - `REDIS_PASSWORD`: Password for Redis authentication
+- `ASTRA_DB_APPLICATION_TOKEN`: astradb application token if using astradb
+- `ASTRA_DB_API_ENDPOINT`: astradb api endpoint if using astradb
+- `VECTOR_DB`: vector db to use (default: QDRANT)
 
 # Backend
 ## Prerequisites

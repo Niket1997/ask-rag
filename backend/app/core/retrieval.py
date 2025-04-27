@@ -6,7 +6,15 @@
 # 3. generate a system prompt using the retrieved vector embeddings
 # 4. query the LLM to answer user's question
 
-from app.core.constants import embeddings, info_logger, llm, qdrant_client, redis_client
+from app.core.constants import (
+    collection_exists,
+    embeddings,
+    get_vector_store,
+    info_logger,
+    llm,
+    qdrant_client,
+    redis_client,
+)
 from langchain_qdrant import QdrantVectorStore
 
 # Similarity threshold for considering a document relevant
@@ -30,22 +38,19 @@ def retrieve_answer(query: str, user_email: str) -> str:
     """
     # get the vector embeddings assocoated with that query
     try:
-        if qdrant_client.collection_exists(user_email):
-            vector_store = QdrantVectorStore(
-                collection_name=user_email,
-                embedding=embeddings,
-                client=qdrant_client,
-            )
+        if collection_exists(user_email):
+            vector_store = get_vector_store(user_email)
 
             # Get documents with their similarity scores
-            relevant_docs = vector_store.similarity_search_with_score(
-                query, k=5, score_threshold=SIMILARITY_THRESHOLD
+            docs = vector_store.similarity_search_with_score(
+                query, k=5
             )
 
-            if relevant_docs:
-                system_prompt += f"""
-                    Documents: {'\n'.join([doc.page_content for doc, _ in relevant_docs])}
-                """
+            for doc, score in docs:
+                if score >= SIMILARITY_THRESHOLD:
+                    system_prompt += f"""
+                    Document: {doc.page_content}
+                    """
 
         messages = [("system", system_prompt), ("user", query)]
 
