@@ -1,0 +1,4 @@
+backend/qdrant_data
+backend/redis_data
+backend/__pycache__
+backend/docker-compose.yml
