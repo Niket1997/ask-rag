@@ -43,12 +43,10 @@ def retrieve_answer(query: str, user_email: str) -> str:
             )
 
             if relevant_docs:
-                info_logger.info(f"retrieved {len(relevant_docs)} relevant documents")
                 system_prompt += f"""
                     Documents: {'\n'.join([doc.page_content for doc, _ in relevant_docs])}
                 """
 
-        info_logger.info(f"system prompt: {system_prompt}")
         messages = [("system", system_prompt), ("user", query)]
 
         response = llm.invoke(messages)

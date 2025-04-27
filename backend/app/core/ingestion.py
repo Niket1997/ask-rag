@@ -29,6 +29,7 @@ def ingest_pdf(file_path: str, user_email: str) -> Dict[str, Any]:
             documents=chunks,
             embedding=embeddings,
             url=os.getenv("QDRANT_URL"),
+            api_key=os.getenv("QDRANT_API_KEY"),
             collection_name=user_email,
         )
 

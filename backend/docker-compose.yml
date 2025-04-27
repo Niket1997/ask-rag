@@ -5,6 +5,8 @@ services:
       - 6333:6333
     volumes:
       - ./qdrant_data:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY}
 
   redis:
     image: redis:latest
@@ -14,7 +16,7 @@ services:
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     volumes:
-      - redis_data:/data
+      - ./redis_data:/data
 
 volumes:
   qdrant_data:
