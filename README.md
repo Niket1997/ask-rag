@@ -8,6 +8,7 @@ A RAG (Retrieval-Augmented Generation) application that allows users to ask ques
 - **Question Answering**: Ask questions about the ingested documents
 - **Vector Search**: Efficient semantic search using Qdrant
 - **LLM Integration**: Powered by LangChain for intelligent responses
+- **Rate Limited APIs**: Both FileUpload & Ask APIs have sliding window rate limiting implemented using redis
 
 ## Environment Variables
 Edit the `.env` file to configure following environment variables. 
@@ -16,6 +17,8 @@ Edit the `.env` file to configure following environment variables.
 - `QDRANT_URL`: URL of the QDRANT API (default: http://localhost:6333)
 - `GOOGLE_CREDENTIALS_JSON`='{json_content}' (ref)[https://pypi.org/project/streamlit-google-auth/]
 - `BACKEND_API_KEY`: API key for service to service communication between UI application & FastAPI backend application.
+- `REDIS_HOST`: host associated with redis (default:localhost)
+- `REDIS_PORT`: port associated with redis (default:6379)
 - `REDIS_PASSWORD`: Password for Redis authentication
 
 # Backend
